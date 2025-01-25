@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3,
+    "name": "VeriFi",
+    "description": "Yet to make this",
+    "version": "1.0",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "permissions": [
+      "storage"
+    ]
+  }
+  
