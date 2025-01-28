@@ -1,5 +1,3 @@
-# AIzaSyCQTQGQAIMhNFoquFzpAkIvITJkEpKL7rk - google fact checker api
-# 6d03e6ee518e4a6bb882787ca015ff3b - news api
 import requests
 
 # Google Fact Check Explorer API
