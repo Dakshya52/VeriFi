@@ -1,9 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "VeriFi",
+  "name": "TruthGuard",
   "version": "1.0",
-  "permissions": ["activeTab", "scripting", "storage"],
-  "action": {
-    "default_popup": "popup.html"
-  }
+  "description": "Detect fake Twitter posts",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://*.twitter.com/*",
+    "https://api.tavily.com/*",
+    "https://factchecktools.googleapis.com/*",
+    "https://api.gdeltproject.org/*",
+    "https://newsapi.org/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["https://twitter.com/*", "https://x.com/*"],
+    "js": ["content.js"],
+    "css": ["styles.css"],
+    "run_at": "document_end"
+  }]
 }

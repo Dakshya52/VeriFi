@@ -67,7 +67,7 @@ GOOGLE_API_KEY = "AIzaSyCQTQGQAIMhNFoquFzpAkIvITJkEpKL7rk"
 NEWS_API_KEY = "6d03e6ee518e4a6bb882787ca015ff3b"
 
 # Query to fact-check
-query = "Covid-19 vaccines are harmless"
+query = "Always knew she was a fraud. When she was in BJP, she used to apply a bigger tilak than us to appear as a bigger Hindu than us. Used to fight with Maulanas on TV for popularity & Today, she's claiming BJP is anti-Muslim hence joined Congress.🤣"
 
 # Perform unified fact-checking
 fact_check_results = unified_fact_check(query, GOOGLE_API_KEY, NEWS_API_KEY)
@@ -82,7 +82,3 @@ for i, result in enumerate(fact_check_results, 1):
     if 'url' in result:
         print(f"   URL: {result['url']}")
     print(f"   API: {result['api']}")
-
-
-
-
