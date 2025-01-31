@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "TruthGuard",
+  "name": "VeriFi",
   "version": "1.0",
   "description": "Detect fake Twitter posts",
   "permissions": ["storage"],
