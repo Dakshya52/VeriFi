@@ -22,28 +22,35 @@ API_KEYS = {
     "NEWSAPI": os.getenv("NEWS_API"),
 }
 
-# Load Local BERT Model
-local_model_dir = "./news_classification_model"
-model = BertForSequenceClassification.from_pretrained(local_model_dir)
-tokenizer = BertTokenizer.from_pretrained(local_model_dir)
 
-# Device configuration
+# # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+# model.to(device)
 
 # ------------------------ #
 #      BERT Prediction     #
 # ------------------------ #
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")  # Use env variable or default to localhost
+
 def predict_with_bert(text):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    inputs = {key: val.to(device) for key, val in inputs.items()}
+    """
+    Sends text to the FastAPI model running in Docker and gets a prediction.
+    """
+    try:
+        url = f"{FASTAPI_URL}/predict"
+        payload = {"text": text}
+        headers = {"Content-Type": "application/json"}
 
-    with torch.no_grad():
-        outputs = model(**inputs)
-        logits = outputs.logits
-        prediction = torch.argmax(logits, dim=1).item()
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses
 
-    return prediction  # 0 = Fake, 1 = Real
+        result = response.json()
+        return result.get("prediction", 0)  # Default to Fake if response is invalid
+
+    except requests.RequestException as e:
+        print(f"Error calling model API: {e}")
+        return 0  # Default to Fake if API fails
+print(predict_with_bert("Breaking: NASA confirms discovery of new habitable planet!"))
 
 # ------------------------ #
 #      Media Verification  #
