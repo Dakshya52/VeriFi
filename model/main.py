@@ -1,4 +1,5 @@
 from transformers import BertForSequenceClassification, BertTokenizer
+import torch
 
 # Specify the local directory
 local_model_dir = "./news_classification_model"
@@ -8,8 +9,6 @@ model = BertForSequenceClassification.from_pretrained(local_model_dir)
 tokenizer = BertTokenizer.from_pretrained(local_model_dir)
 
 print("Model and tokenizer loaded successfully.")
-
-import torch
 
 def predict(text):
     # Tokenize the input
@@ -29,5 +28,5 @@ def predict(text):
     return "Real" if prediction == 1 else "Fake"
 
 # Example usage
-sample_title = "Covid-19 vaccines is carcinogenic"
+sample_title = "COVID-19 vaccines are carcinogenic"
 print(f"Prediction: {predict(sample_title)}")

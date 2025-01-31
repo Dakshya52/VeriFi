@@ -1,10 +1,15 @@
+import torch
 import requests
 from dotenv import load_dotenv
 import os
-import spacy  # Install using: pip install spacy
-from textblob import TextBlob  # Install using: pip install textblob
+import spacy
+from textblob import TextBlob
+from transformers import BertForSequenceClassification, BertTokenizer
 
 load_dotenv()
+
+# Load NLP Model
+nlp = spacy.load("en_core_web_sm")
 
 # API Keys
 API_KEYS = {
@@ -12,10 +17,32 @@ API_KEYS = {
     "NEWSAPI": os.getenv("NEWS_API"),
 }
 
-# Load NLP Model
-nlp = spacy.load("en_core_web_sm")  # You can also use a transformer-based model
+# Load Local BERT Model
+local_model_dir = "./news_classification_model"
+model = BertForSequenceClassification.from_pretrained(local_model_dir)
+tokenizer = BertTokenizer.from_pretrained(local_model_dir)
 
+# Device configuration
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
+# ------------------------ #
+#      BERT Prediction     #
+# ------------------------ #
+def predict_with_bert(text):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    inputs = {key: val.to(device) for key, val in inputs.items()}
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits
+        prediction = torch.argmax(logits, dim=1).item()
+
+    return prediction  # 0 = Fake, 1 = Real
+
+# ------------------------ #
+#    Tavily & NewsAPI      #
+# ------------------------ #
 def analyze_with_tavily(text):
     try:
         url = "https://api.tavily.com/search"
@@ -27,13 +54,11 @@ def analyze_with_tavily(text):
             "include_answer": True,
         }
         response = requests.post(url, json=payload, headers=headers)
-        print(response)
         response.raise_for_status()
         return format_tavily_data(response.json())
     except requests.RequestException as e:
         print("Tavily Error:", e)
         return None
-
 
 def analyze_with_newsapi(text):
     try:
@@ -51,10 +76,9 @@ def analyze_with_newsapi(text):
         print("NewsAPI Error:", e)
         return None
 
-
 def format_tavily_data(data):
     return {
-        "answer": data.get("answer", ""),  # Extracting the answer field
+        "answer": data.get("answer", ""),
         "results": [
             {
                 "title": result.get("title", ""),
@@ -79,20 +103,22 @@ def format_newsapi_data(data):
         ]
     }
 
+# ------------------------ #
+#  Fact-Checking Analysis  #
+# ------------------------ #
 def analyze_tavily_answer(answer):
     if not answer:
         return 0, "No answer provided by Tavily"
 
     doc = nlp(answer)
     blob = TextBlob(answer)
-    sentiment = blob.sentiment.polarity  # -1 (negative) to 1 (positive)
+    sentiment = blob.sentiment.polarity
 
-    # Basic heuristic scoring
     credibility_score = 0
     analysis_summary = ""
 
     if sentiment < -0.2:
-        credibility_score -= 10  # Misinformation often has negative sentiment
+        credibility_score -= 10
         analysis_summary += "Answer has negative sentiment, indicating possible bias.\n"
 
     if any(token.text.lower() in ["fake", "hoax", "misleading"] for token in doc):
@@ -100,74 +126,76 @@ def analyze_tavily_answer(answer):
         analysis_summary += "Detected keywords related to misinformation.\n"
 
     if any(ent.label_ in ["ORG", "GPE"] for ent in doc.ents):
-        credibility_score += 5  # Named entities indicate informative content
+        credibility_score += 5
         analysis_summary += "Contains references to credible organizations.\n"
 
     return credibility_score, analysis_summary
 
-
-def format_newsapi_data(data):
-    return {
-        "articles": [
-            {
-                "source": article.get("source", {}).get("name", "Unknown"),
-                "title": article.get("title", ""),
-                "url": article.get("url", ""),
-                "publishedAt": article.get("publishedAt", "")
-            }
-            for article in data.get("articles", [])[:3]
-        ]
-    }
-
-# Main Analysis Function
-def analyze_text(text):
-    tavily_data = analyze_with_tavily(text)
-    print(tavily_data)
-    newsapi_data = analyze_with_newsapi(text)
-    return process_results(tavily_data, newsapi_data)
-
-# Main processing function
 def process_results(tavily, newsapi):
     score = 50
     factors = []
 
-    # Analyze Tavily's extracted answer
     if tavily and "answer" in tavily:
         credibility_score, analysis_summary = analyze_tavily_answer(tavily["answer"])
         score += credibility_score
-        factors.append(f"Tavily Answer Analysis: {analysis_summary}")
+        factors.append(f"Tavily Analysis: {analysis_summary}")
 
-    # Tavily sources credibility check
     if tavily and tavily.get("results"):
         credible_sources = sum(
-            1
-            for r in tavily["results"]
-            if any(domain in r.get("source", "").lower() for domain in [".gov", ".edu", "who.int"])
+            1 for r in tavily["results"] if any(domain in r.get("source", "").lower() for domain in [".gov", ".edu", "who.int"])
         )
         score += credible_sources * 5
-        factors.append(f"Tavily: {credible_sources} authoritative sources")
+        factors.append(f"Tavily: {credible_sources} authoritative sources found.")
 
-    # NewsAPI credibility check
     if newsapi and newsapi.get("articles"):
         credible_outlets = ["reuters", "associated press", "bbc", "new york times", "guardian"]
         credible_articles = sum(
             1 for a in newsapi["articles"] if any(outlet in a["source"].lower() for outlet in credible_outlets)
         )
         score += credible_articles * 7
-        factors.append(f"NewsAPI: {credible_articles} credible news articles")
+        factors.append(f"NewsAPI: {credible_articles} credible news articles found.")
 
-    final_score = max(0, min(100, round(score)))
+    final_score = max(0, min(50, round(score)))  # Ensure score remains within 0-50
     return {
-        "confidence": final_score,
-        "isLikelyFake": final_score < 40,
+        "fact_check_score": final_score,
+        "isLikelyFake": final_score < 20,
         "summary": "\n".join(factors) or "Insufficient data for analysis",
-        "rawData": {
-            "tavilyData": tavily,
-            "newsapiData": newsapi,
-        },
+        "rawData": {"tavilyData": tavily, "newsapiData": newsapi},
     }
 
+# ------------------------ #
+#  Unified Result Function #
+# ------------------------ #
+def analyze_text(text):
+    # BERT Prediction (50 Points)
+    bert_prediction = predict_with_bert(text)
+    bert_score = 50 if bert_prediction == 1 else 0  # 50 if Real, 0 if Fake
+
+    # Fact-Checking APIs (50 Points)
+    tavily_data = analyze_with_tavily(text)
+    newsapi_data = analyze_with_newsapi(text)
+    fact_check_result = process_results(tavily_data, newsapi_data)
+
+    fact_check_score = fact_check_result["fact_check_score"]
+
+    # Final Score out of 100
+    final_score = bert_score + fact_check_score
+    is_fake = final_score < 40
+
+    return {
+        "final_score": final_score,
+        "isLikelyFake": is_fake,
+        "bert_score": bert_score,
+        "fact_check_score": fact_check_score,
+        "bert_prediction": "Real" if bert_prediction == 1 else "Fake",
+        "fact_check_analysis": fact_check_result["summary"],
+        "rawData": fact_check_result["rawData"],
+    }
+
+# ------------------------ #
+#        Execution         #
+# ------------------------ #
 if __name__ == "__main__":
-    query = "COVID-19 vaccines are carcinogenic"
+    query = "There were not one but two stampedes in Maha Kumbh. Yogi Adityanath and Uttarpradesh administration have failed to manage Maha Kumbh Mela."
     result = analyze_text(query)
     print(result)
