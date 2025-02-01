@@ -1,8 +1,9 @@
+
+
 const API_KEYS = {
     GOOGLE_FACT_CHECK: '',
     TAVILY: '',
     NEWSAPI: '',
-    // GDELT doesn't require an API key
   };
   
   // Google Fact Check Tools API
