@@ -1,32 +1,42 @@
-from transformers import BertForSequenceClassification, BertTokenizer
-import torch
+from bert_model import predict_with_bert
+from image_verification import verify_image
+from fact_checking import analyze_with_tavily, analyze_with_newsapi
+from scoring import process_results
 
-# Specify the local directory
-local_model_dir = "./news_classification_model"
+def analyze_text(text, media_url=None):
+    bert_prediction = predict_with_bert(text)
+    bert_score = 50 if bert_prediction == 1 else 0
 
-# Load the model and tokenizer
-model = BertForSequenceClassification.from_pretrained(local_model_dir)
-tokenizer = BertTokenizer.from_pretrained(local_model_dir)
+    media_score = 0
+    is_media_fake = False
+    if media_url:
+        media_verification = verify_image(media_url)
+        if media_verification == "Fake":
+            media_score -= 10
+            is_media_fake = True
 
-print("Model and tokenizer loaded successfully.")
+    tavily_data = analyze_with_tavily(text)
+    newsapi_data = analyze_with_newsapi(text)
+    fact_check_result = process_results(tavily_data, newsapi_data)
 
-def predict(text):
-    # Tokenize the input
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    fact_check_score = fact_check_result["fact_check_score"]
+    is_fake = is_media_fake or bert_score == 0 or fact_check_score == 0
 
-    # Move inputs to the same device as the model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    inputs = {key: val.to(device) for key, val in inputs.items()}
+    final_score = bert_score + fact_check_score + media_score
+    is_fake = final_score < 40
 
-    # Make prediction
-    with torch.no_grad():  # Disable gradient calculation for inference
-        outputs = model(**inputs)
-        logits = outputs.logits
-        prediction = torch.argmax(logits, dim=1).item()
+    return {
+        "final_score": final_score,
+        "isLikelyFake": is_fake,
+        "bert_score": bert_score,
+        "fact_check_score": fact_check_score,
+        "media_score": media_score,
+        "fact_check_analysis": fact_check_result["summary"],
+    }
 
-    return "Real" if prediction == 1 else "Fake"
-
-# Example usage
-sample_title = "COVID-19 vaccines are carcinogenic"
-print(f"Prediction: {predict(sample_title)}")
+if __name__ == "__main__":
+    # docker run -p 8000:8000 bert-fastapi
+    text = "AOC is far more educated than Trump."
+    media_url = None  
+    result = analyze_text(text, media_url)
+    print(f"Final Score: {result['final_score']}, Likely Fake: {result['isLikelyFake']}")

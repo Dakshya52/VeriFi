@@ -264,38 +264,6 @@ def analyze_tavily_answer(answer):
 
     return credibility_score, analysis_summary
 
-def process_results(tavily, newsapi):
-    score = 50
-    factors = []
-
-    if tavily and "answer" in tavily:
-        credibility_score, analysis_summary = analyze_tavily_answer(tavily["answer"])
-        score += credibility_score
-        factors.append(f"Tavily Analysis: {analysis_summary}")
-
-    if tavily and tavily.get("results"):
-        credible_sources = sum(
-            1 for r in tavily["results"] if any(domain in r.get("source", "").lower() for domain in [".gov", ".edu", "who.int"])
-        )
-        score += credible_sources * 5
-        factors.append(f"Tavily: {credible_sources} authoritative sources found.")
-
-    if newsapi and newsapi.get("articles"):
-        credible_outlets = ["reuters", "associated press", "bbc", "new york times", "guardian"]
-        credible_articles = sum(
-            1 for a in newsapi["articles"] if any(outlet in a["source"].lower() for outlet in credible_outlets)
-        )
-        score += credible_articles * 7
-        factors.append(f"NewsAPI: {credible_articles} credible news articles found.")
-
-    final_score = max(0, min(50, round(score)))  # Ensure score remains within 0-50
-    return {
-        "fact_check_score": final_score,
-        "isLikelyFake": final_score < 20,
-        "summary": "\n".join(factors) or "Insufficient data for analysis",
-        "rawData": {"tavilyData": tavily, "newsapiData": newsapi},
-    }
-
 # Sample Text and Media URL
 text = "AOC is far more educated than Trump."
 media_url = "https://pbs.twimg.com/media/GiQSmwSbwAA4-OR?format=jpg&name=small"  # Optional: Provide a media URL for verification

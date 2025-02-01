@@ -1,5 +1,3 @@
-
-
 const API_KEYS = {
     GOOGLE_FACT_CHECK: '',
     TAVILY: '',
