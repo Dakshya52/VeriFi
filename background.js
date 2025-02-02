@@ -3,8 +3,8 @@ const MODEL_API_ENDPOINT = 'http://127.0.0.1:8000/predict'; // Adjust endpoint p
 
 
 const API_KEYS = {
-  TAVILY: '', // Replace with your Tavily API key
-  NEWSAPI: '', // Replace with your NewsAPI key
+  TAVILY: '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', // Replace with your Tavily API key
+  NEWSAPI: '6d03e6ee518e4a6bb882787ca015ff3b', // Replace with your NewsAPI key
 };
 
 // Log API responses for debugging
