@@ -58,8 +58,7 @@ Analyzes a tweet's text and media content to determine credibility.
 The final credibility score is computed as follows:
 - **BERT Prediction Score (50 or 0)**: Based on the text analysis model.
 - **Fact-Checking Score (0-50)**: Derived from external API sources like Tavily and NewsAPI.
-- **Media Verification Score (-10 or 0)**: Deducts points if the media is identified as fake.
-
+  
 | Final Score | Likely Fake? |
 |------------|--------------|
 | 0 - 39    | ✅ Yes       |
