@@ -1,210 +1,194 @@
+// Updated API_KEYS and new model endpoint
+const MODEL_API_ENDPOINT = 'http://127.0.0.1:8000/predict'; // Adjust endpoint path as needed
+
+
 const API_KEYS = {
-    GOOGLE_FACT_CHECK: '',
-    TAVILY: '',
-    NEWSAPI: '',
-    // GDELT doesn't require an API key
-  };
-  
-  // Google Fact Check Tools API
-  const analyzeWithGoogleFactCheck = async (text) => {
-    try {
-      const response = await fetch(
-        `https://factchecktools.googleapis.com/v1alpha1/claims:search?query=${encodeURIComponent(text)}&key=${API_KEYS.GOOGLE_FACT_CHECK}`
-      );
-      return formatGoogleData(await response.json());
-    } catch (error) {
-      console.error('Google Fact Check Error:', error);
-      return null;
+  TAVILY: '', // Replace with your Tavily API key
+  NEWSAPI: '', // Replace with your NewsAPI key
+};
+
+// Log API responses for debugging
+const logApiResponse = (apiName, response) => {
+  console.log(`${apiName} Response:`, JSON.stringify(response, null, 2));
+};
+
+// New ML model analysis function
+const analyzeWithLocalModel = async (text) => {
+  try {
+    const response = await fetch(`${MODEL_API_ENDPOINT}?text=${encodeURIComponent(text)}`, {
+      method: 'POST', // or 'GET' if the API expects a GET request
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Model API Error: ${JSON.stringify(errorData)}`);
     }
-  };
-  
-  // Tavily Web Search API
-  const analyzeWithTavily = async (text) => {
-    try {
-      const response = await fetch('https://api.tavily.com/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          api_key: API_KEYS.TAVILY,
-          query: text,
-          search_depth: 'advanced',
-          include_answer: true
-        })
-      });
-      return formatTavilyData(await response.json());
-    } catch (error) {
-      console.error('Tavily Error:', error);
-      return null;
-    }
-  };
-  
-  // GDELT Document API
-  const analyzeWithGDELT = async (text) => {
-    try {
-      const response = await fetch(
-        `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(text)}&mode=artlist&format=json`
-      );
-      return formatGDELTData(await response.json());
-    } catch (error) {
-      console.error('GDELT Error:', error);
-      return null;
-    }
-  };
-  
-  // NewsAPI Everything Endpoint
-  const analyzeWithNewsAPI = async (text) => {
-    try {
-      const response = await fetch(
-        `https://newsapi.org/v2/everything?q=${encodeURIComponent(text)}&sortBy=publishedAt&language=en&apiKey=${API_KEYS.NEWSAPI}`
-      );
-      return formatNewsAPIData(await response.json());
-    } catch (error) {
-      console.error('NewsAPI Error:', error);
-      return null;
-    }
-  };
-  
-  // Data Formatters
-  const formatGoogleData = (data) => ({
-    claims: (data.claims || []).slice(0, 3).map(claim => ({
-      text: claim.text,
-      claimReview: (claim.claimReview || []).map(review => ({
-        publisher: review.publisher?.name || 'Unknown',
-        textualRating: review.textualRating || 'Unrated',
-        url: review.url
-      }))
-    }))
-  });
-  
-  const formatTavilyData = (data) => ({
-    results: (data.results || []).slice(0, 3).map(result => ({
-      title: result.title,
-      content: result.content,
-      url: result.url,
-      source: result.source
-    }))
-  });
-  
-  const formatGDELTData = (data) => ({
-    articles: (data.articles || []).slice(0, 3).map(article => ({
-      title: article.title,
-      url: article.url,
-      sentiment: article.sentiment || 0,
-      source: article.domain
-    }))
-  });
-  
-  const formatNewsAPIData = (data) => ({
-    articles: (data.articles || []).slice(0, 3).map(article => ({
-      source: article.source?.name || 'Unknown',
-      title: article.title,
-      url: article.url,
-      publishedAt: article.publishedAt
-    }))
-  });
-  
-  // Main Analysis Function
-  const analyzeTweet = async (text) => {
-    try {
-      const [googleData, tavilyData, gdeltData, newsapiData] = await Promise.all([
-        analyzeWithGoogleFactCheck(text),
-        analyzeWithTavily(text),
-        analyzeWithGDELT(text),
-        analyzeWithNewsAPI(text)
-      ]);
-  
-      return processResults(googleData, tavilyData, gdeltData, newsapiData);
-    } catch (error) {
-      console.error('Analysis Error:', error);
-      return errorResponse();
-    }
-  };
-  // Updated processResults function with error handling
-const processResults = (google, tavily, gdelt, newsapi) => {
-    let score = 50;
-    const factors = [];
-  
-    // Google Fact Check Scoring
-    if (google?.claims?.length > 0) {
-      const claim = google.claims[0];
-      const rating = claim.claimReview[0]?.textualRating?.toLowerCase() || 'neutral';
-      
-      if (rating.includes('false')) {
-        score -= 30;
-        factors.push('Google: False claim detected');
-      } else if (rating.includes('true')) {
-        score += 25;
-        factors.push('Google: Verified claim');
-      }
-    }
-  
-    // Tavily Web Results (Updated with null checks)
-    if (tavily?.results?.length > 0) {
-      const credibleSources = tavily.results.filter(r => {
-        const source = r.source?.toLowerCase() || r.url?.toLowerCase() || '';
-        return source.includes('.gov') || 
-               source.includes('.edu') ||
-               source.includes('who.int');
-      }).length;
-      
-      score += credibleSources * 5;
-      factors.push(`Tavily: ${credibleSources} authoritative sources`);
-    }
-  
-    // GDELT Sentiment Analysis (Updated with null checks)
-    if (gdelt?.articles?.length > 0) {
-      const validArticles = gdelt.articles.filter(a => typeof a.sentiment === 'number');
-      const sentimentSum = validArticles.reduce((sum, a) => sum + a.sentiment, 0);
-      const avgSentiment = validArticles.length > 0 ? sentimentSum / validArticles.length : 0;
-      
-      score += avgSentiment * 15;
-      factors.push(`GDELT: ${(avgSentiment * 100).toFixed(0)}% sentiment`);
-    }
-  
-    // NewsAPI Coverage (Updated with null checks)
-    if (newsapi?.articles?.length > 0) {
-      const credibleNewsOutlets = [
-        'reuters', 'associated press', 'bbc',
-        'new york times', 'guardian'
-      ];
-      
-      const credibleArticles = newsapi.articles.filter(a => {
-        const source = a.source?.toLowerCase() || '';
-        return credibleNewsOutlets.some(outlet => source.includes(outlet));
-      }).length;
-      
-      score += credibleArticles * 7;
-      factors.push(`NewsAPI: ${credibleArticles} credible news articles`);
-    }
-  
-    // Confidence Clamping with fallback
-    const finalScore = Math.min(100, Math.max(0, Math.round(score))) || 50;
-  
+
+    const data = await response.json();
     return {
-      confidence: finalScore,
-      isLikelyFake: finalScore < 40,
-      summary: factors.join('\n') || 'Insufficient data for analysis',
-      rawData: {
-        googleData: google || null,
-        tavilyData: tavily || null,
-        gdeltData: gdelt || null,
-        newsapiData: newsapi || null
-      }
+      isFake: data.prediction === 1,
+      confidence: data.confidence || 0
     };
-  };
-  
-  // Error Handling
-  const errorResponse = () => ({
-    confidence: 0,
-    isLikelyFake: false,
-    summary: 'Analysis failed - try again later',
-    rawData: null
-  });
-  
-  // Chrome Message Listener
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'ANALYZE_TWEET') {
-      analyzeTweet(request.text).then(sendResponse);
-      return true; // Keep message channel open
+  } catch (error) {
+    console.error('Local Model Error:', error);
+    return null;
+  }
+};
+
+// Tavily API Call
+const analyzeWithTavily = async (text) => {
+  try {
+    const response = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: API_KEYS.TAVILY,
+        query: text,
+        search_depth: 'advanced',
+        include_answer: true, // Include the summarized answer
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Tavily API Error: ${response.status} ${response.statusText}`);
     }
-  });
+
+    const data = await response.json();
+    return {
+      results: data.results?.slice(0, 3).map((result) => ({
+        title: result.title || 'No title',
+        content: result.content || 'No content available',
+        url: result.url || '#',
+        source: result.source || 'Unknown source',
+      })),
+      answer: data.answer || null, // Include the summarized answer
+    };
+  } catch (error) {
+    console.error('Tavily API Error:', error);
+    return null;
+  }
+};
+// NewsAPI Call
+const analyzeWithNewsAPI = async (text) => {
+  try {
+    const response = await fetch(
+      `https://newsapi.org/v2/everything?q=${encodeURIComponent(
+        text
+      )}&sortBy=publishedAt&language=en&apiKey=${API_KEYS.NEWSAPI}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`NewsAPI Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    logApiResponse('NewsAPI', data);
+
+    if (!data.articles || data.articles.length === 0) {
+      console.warn('NewsAPI: No articles found for query:', text);
+      return null;
+    }
+
+    return {
+      articles: data.articles.slice(0, 3).map((article) => ({
+        source: article.source?.name || 'Unknown source',
+        title: article.title || 'No title',
+        url: article.url || '#',
+        publishedAt: article.publishedAt || 'Unknown date',
+      })),
+    };
+  } catch (error) {
+    console.error('NewsAPI Error:', error);
+    return null;
+  }
+};
+
+// Process Results
+// Updated processResults function
+const processResults = (tavilyData, newsapiData, modelData) => {
+  let score = 50;
+  const factors = [];
+  let isDebunked = false;
+
+  // 1. Tavily Analysis (Most Weight)
+  if (tavilyData?.answer) {
+    const debunkedKeywords = ["no evidence", "debunked", "false", "unfounded", "misleading"];
+    const answerLower = tavilyData.answer.toLowerCase();
+
+    if (debunkedKeywords.some(keyword => answerLower.includes(keyword))) {
+      score -= 40; // Strong penalty for debunking
+      isDebunked = true;
+      factors.push('Debunked by fact-check analysis');
+    } else {
+      score += 20; // Boost for credible summary
+      factors.push('Verified by fact-check analysis');
+    }
+  }
+
+  // 2. NewsAPI Scoring (Conditional Weight)
+  if (newsapiData?.articles?.length > 0) {
+    const factCheckArticles = newsapiData.articles.filter(article => {
+      const source = (article.source || '').toLowerCase();
+      return source.includes('reuters') ||
+        source.includes('associated press') ||
+        source.includes('factcheck');
+    }).length;
+
+    if (isDebunked) {
+      // Only count fact-check articles when debunked
+      score -= factCheckArticles * 15;
+      if (factCheckArticles > 0) factors.push(`${factCheckArticles} fact-check confirmations`);
+    } else {
+      score += factCheckArticles * 10;
+    }
+  }
+
+  // 3. AI Model Scoring (Hidden but Influential)
+  if (modelData) {
+    if (modelData.isFake) {
+      score -= 30 + (modelData.confidence * 0.3); // Scale with confidence
+      // No UI factor added for AI
+    } else {
+      score += 15 + (modelData.confidence * 0.2);
+    }
+  }
+
+  // Final adjustments
+  const finalScore = Math.min(100, Math.max(0, Math.round(score)));
+
+  return {
+    confidence: finalScore,
+    isLikelyFake: finalScore < 45, // More sensitive threshold
+    summary: factors.join('\n') || 'Analysis inconclusive',
+    rawData: {
+      tavily: tavilyData,
+      newsapi: newsapiData,
+      // AI data is included but won't be displayed
+    }
+  };
+};
+
+// Updated analyzeTweet function
+const analyzeTweet = async (text) => {
+  try {
+    const [tavilyData, newsapiData, modelData] = await Promise.all([
+      analyzeWithTavily(text),
+      analyzeWithNewsAPI(text),
+      analyzeWithLocalModel(text)
+    ]);
+
+    return processResults(tavilyData, newsapiData, modelData);
+  } catch (error) {
+    console.error('Analysis Error:', error);
+    return errorResponse();
+  }
+};
+
+// Chrome Message Listener
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'ANALYZE_TWEET') {
+    analyzeTweet(request.text).then(sendResponse);
+    return true; // Keep the message channel open for async response
+  }
+});

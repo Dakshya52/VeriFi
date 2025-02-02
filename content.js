@@ -484,13 +484,13 @@ class TruthGuardUI {
 
     // Create new container
     const resultContainer = this.createResultContainer();
-    
+
     // Insert after the tweet's main content
     const tweetContent = tweet.querySelector('[data-testid="tweet"] > div > div');
     if (tweetContent) {
-        tweetContent.insertAdjacentElement('afterend', resultContainer);
+      tweetContent.insertAdjacentElement('afterend', resultContainer);
     } else {
-        tweet.appendChild(resultContainer);
+      tweet.appendChild(resultContainer);
     }
 
     try {
@@ -545,9 +545,8 @@ class TruthGuardUI {
                 <div class="tg-confidence-fill" style="width: ${confidence}%; background: ${confidenceColor}"></div>
             </div>
             <div class="tg-confidence-text" style="color: ${confidenceColor}">
-                ${confidence}% Confidence - ${
-      results?.isLikelyFake ? "Likely Misleading" : "Likely Credible"
-    }
+                ${confidence}% Confidence - ${results?.isLikelyFake ? "Likely Misleading" : "Likely Credible"
+      }
             </div>
             ${this.createSourceSections(rawData)}
             <div class="tg-close-btn">
@@ -558,82 +557,65 @@ class TruthGuardUI {
         </div>
     `;
 
-    // Re-attach close handler to the new content
     container.querySelector(".tg-close-btn").addEventListener("click", (e) => {
       e.stopPropagation();
       container.remove();
     });
   }
+
   createSourceSections(data) {
     return Object.entries(data)
+      .filter(([sourceName]) => sourceName !== 'aiDetection') // Exclude AI results
       .map(([sourceName, sourceData]) => {
         if (!sourceData) return "";
+
         return `
-        <div class="tg-source-card">
-          <div class="tg-source-title">${this.formatSourceName(
-            sourceName
-          )}</div>
-          <div class="tg-source-content">
-            ${this.formatSourceContent(sourceName, sourceData)}
+          <div class="tg-source-card">
+            <div class="tg-source-title">${this.formatSourceName(sourceName)}</div>
+            <div class="tg-source-content">
+              ${this.formatSourceContent(sourceName, sourceData)}
+            </div>
           </div>
-        </div>
-      `;
+        `;
       })
       .join("");
   }
 
   formatSourceName(name) {
-    return name
-      .replace(/([A-Z])/g, " $1")
-      .replace("Data", "")
-      .trim();
+    return {
+      tavily: "Web Results (Tavily)",
+      newsapi: "News Coverage (NewsAPI)"
+    }[name] || "Sources";
   }
 
   formatSourceContent(source, data) {
     switch (source) {
-      case "googleData":
-        return this.formatGoogleResults(data);
-      case "tavilyData":
-        return this.formatTavilyResults(data);
-      case "newsapiData":
-        return this.formatNewsResults(data);
-      case "gdeltData":
-        return this.formatGDELTResults(data);
+      case 'tavily':
+        return `
+          ${data.answer ? `<div class="tg-summary">${data.answer}</div>` : ''}
+          ${data.results?.length > 0
+            ? data.results.map(result => `
+                <div class="tg-source-item">
+                  <a href="${result.url}" target="_blank">${result.title}</a>
+                  <div class="tg-source-snippet">${result.content?.slice(0, 120)}...</div>
+                </div>`
+            ).join('')
+            : 'No web results found'}
+        `;
+
+      case 'newsapi':
+        return data.articles?.length > 0
+          ? data.articles.map(article => `
+              <div class="tg-source-item">
+                <div class="tg-source-meta">${article.source}</div>
+                <a href="${article.url}" target="_blank">${article.title}</a>
+              </div>`
+          ).join('')
+          : 'No news coverage found';
+
       default:
         return "No data available";
     }
-  }
-
-  formatGoogleResults(data) {
-    return (
-      data?.claims
-        ?.slice(0, 2)
-        .map(
-          (claim) => `
-      <div style="margin-bottom: 12px;">
-        <div style="font-weight: 500; margin-bottom: 4px;">${claim.text}</div>
-        ${claim.claimReview
-          ?.slice(0, 1)
-          .map(
-            (review) => `
-          <div style="font-size: 0.8em; color: #666;">
-            <span style="color: ${
-              review.textualRating?.toLowerCase().includes("false")
-                ? "#ef4444"
-                : "#22c55e"
-            }">
-              ${review.textualRating || "No rating"}
-            </span>
-            - ${review.publisher || "Unknown publisher"}
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    `
-        )
-        .join("") || "No relevant claims found"
-    );
   }
 
   formatTavilyResults(data) {
@@ -643,9 +625,8 @@ class TruthGuardUI {
         .map(
           (result) => `
       <div style="margin-bottom: 12px;">
-        <a href="${
-          result.url
-        }" target="_blank" style="color: #1da1f2; text-decoration: none;">
+        <a href="${result.url
+            }" target="_blank" style="color: #1da1f2; text-decoration: none;">
           ${result.title}
         </a>
         <div style="font-size: 0.8em; color: #666; margin-top: 4px;">
@@ -666,11 +647,10 @@ class TruthGuardUI {
           (article) => `
       <div style="margin-bottom: 12px;">
         <div style="font-size: 0.8em; color: #666; margin-bottom: 2px;">
-          ${article.source || "Unknown source"}
+          ${article.source?.name || "Unknown source"}
         </div>
-        <a href="${
-          article.url
-        }" target="_blank" style="color: #1da1f2; text-decoration: none;">
+        <a href="${article.url
+            }" target="_blank" style="color: #1da1f2; text-decoration: none;">
           ${article.title}
         </a>
       </div>
@@ -678,35 +658,6 @@ class TruthGuardUI {
         )
         .join("") || "No news coverage found"
     );
-  }
-
-  formatGDELTResults(data) {
-    if (!data?.articles?.length) return "No media analysis available";
-
-    const sentiment =
-      data.articles.reduce(
-        (sum, article) => sum + (article.sentiment || 0),
-        0
-      ) / data.articles.length;
-
-    return `
-      <div style="margin-bottom: 8px;">
-        Average Sentiment: ${(sentiment * 100).toFixed(1)}%
-      </div>
-      ${data.articles
-        .slice(0, 2)
-        .map(
-          (article) => `
-        <div style="margin-bottom: 8px;">
-          <div>${article.title}</div>
-          <div style="font-size: 0.8em; color: #666;">
-            Sentiment: ${((article.sentiment || 0) * 100).toFixed(1)}%
-          </div>
-        </div>
-      `
-        )
-        .join("")}
-    `;
   }
 
   showError(container, message) {

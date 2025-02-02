@@ -3,21 +3,33 @@
   "name": "VeriFi",
   "version": "1.0",
   "description": "Detect fake Twitter posts",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
-    "https://*.twitter.com/*",
+    "https://.twitter.com/",
     "https://api.tavily.com/*",
     "https://factchecktools.googleapis.com/*",
     "https://api.gdeltproject.org/*",
-    "https://newsapi.org/*"
+    "https://newsapi.org/*",
+    "http://127.0.0.1:8000/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [{
-    "matches": ["https://twitter.com/*", "https://x.com/*"],
-    "js": ["content.js"],
-    "css": ["styles.css"],
-    "run_at": "document_end"
-  }]
+  "content_scripts": [
+    {
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_end"
+    }
+  ]
 }
