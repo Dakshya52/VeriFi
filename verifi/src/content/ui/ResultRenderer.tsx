@@ -31,6 +31,9 @@ export class ResultRenderer {
     const confidenceColor = this.getConfidenceColor(results.confidence);
     const formattedSources = new SourceFormatter().formatSourcesAnonymous(results.rawData);
 
+    // Extract Tavily answer if available
+    const tavilyAnswer = results.rawData?.tavily?.answer || "No Results";
+
     container.innerHTML = `
       <div class="tg-results">
         <div class="tg-confidence-header">
@@ -47,9 +50,13 @@ export class ResultRenderer {
                style="width: ${results.confidence}%; 
                       background: ${confidenceColor}"></div>
         </div>
-
+  
+        <div class="tg-answer">
+          ${tavilyAnswer}
+        </div>
+  
         ${formattedSources}
-
+  
         <button class="tg-close-btn">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -60,6 +67,7 @@ export class ResultRenderer {
 
     this.addCloseHandler(container);
   }
+
 
   private getConfidenceColor(confidence: number): string {
     if (confidence >= 70) return "#22c55e"; // Green

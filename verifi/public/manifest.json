@@ -1,9 +1,16 @@
 {
-    "manifest_version": 3,
-    "name": "Twitter Verifier",
-    "version": "1.0",
-    "description": "Verify Twitter posts using AI analysis",
-    "permissions": ["storage","activeTab","scripting"],
+  "manifest_version": 3,
+  "name": "Twitter Verifier",
+  "version": "1.0",
+  "description": "Verify Twitter posts using AI analysis",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
   "host_permissions": [
     "https://*.twitter.com/*",
     "https://api.tavily.com/*",
@@ -11,13 +18,21 @@
     "https://api.gdeltproject.org/*",
     "https://newsapi.org/*"
   ],
-   "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["https://twitter.com/*", "https://x.com/*"],
-        "js": ["content.js"]
-      }
-    ]
-  }
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "48": "icon-green.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}

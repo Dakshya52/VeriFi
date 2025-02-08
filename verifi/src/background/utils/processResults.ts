@@ -11,7 +11,12 @@ export const processResults = (
 
   // 1. Tavily Analysis
   if (tavilyData?.answer) {
-    const debunkedKeywords = ["no evidence", "debunked", "false", "unfounded", "misleading"];
+    const debunkedKeywords = [
+      "no evidence", "debunked", "false", "unfounded", "misleading", "hoax",
+      "not true", "disproven", "refuted", "inaccurate", "baseless", "fake",
+      "incorrect", "unsubstantiated", "not supported", "misrepresented",
+      "fabricated", "conspiracy", "discredited"
+    ];
     const answerLower = tavilyData.answer.toLowerCase();
 
     if (debunkedKeywords.some(keyword => answerLower.includes(keyword))) {
