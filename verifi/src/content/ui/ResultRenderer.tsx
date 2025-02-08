@@ -10,22 +10,18 @@ export class ResultRenderer {
 
   showLoading(container: HTMLDivElement) {
     container.innerHTML = `
-      <div class="tg-loading-indicator">
-                <div class="tg-particles">
-                    <div class="tg-particle"></div>
-                    <div class="tg-particle"></div>
-                    <div class="tg-particle"></div>
-                    <div class="tg-particle"></div>
-                </div>
-                <div class="tg-loader"></div>
-                <div class="tg-loading-text">Analyzing Authenticity</div>
-            </div>
-      <button class="tg-close-btn"><svg viewBox="0 0 24 24" width="16" height="16">
+        <div class="minimal-loader">
+            <div class="ml-spinner"></div>
+            <div class="ml-text">Loading</div>
+            <button class="ml-close-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16">
                     <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg></button>
+                </svg>
+            </button>
+        </div>
     `;
     this.addCloseHandler(container);
-  }
+}
 
   showResults(container: HTMLDivElement, results: AnalysisResult) {
     const confidenceColor = this.getConfidenceColor(results.confidence);

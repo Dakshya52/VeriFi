@@ -1,6 +1,53 @@
 export const injectStyles = () => {
-    const style = document.createElement("style");
-    style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
+    .minimal-loader {
+    position: relative;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ml-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: ml-spin 1s linear infinite;
+}
+
+.ml-text {
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
+.ml-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.ml-close-btn:hover {
+    opacity: 1;
+}
+
+@keyframes ml-spin {
+    to { transform: rotate(360deg); }
+}
       /* Twitter-like Button with Circular Hover Effect */
       .tg-verify-btn {
         display: flex;
@@ -461,5 +508,5 @@ export const injectStyles = () => {
       }
 
     `;
-    document.head.appendChild(style);
-  };
+  document.head.appendChild(style);
+};
