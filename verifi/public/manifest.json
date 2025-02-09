@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Twitter Verifier",
+  "name": "VeriFi",
   "version": "1.0",
   "description": "Verify Twitter posts using AI analysis",
   "permissions": [

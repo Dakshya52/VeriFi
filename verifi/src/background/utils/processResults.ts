@@ -1,5 +1,20 @@
 import { TavilyResponse, NewsAPIResponse, ModelResponse, AnalysisResult } from '../types';
 
+// Helper function to add controlled randomness
+const addWeightedVariance = (baseScore: number): number => {
+  // Calculate variance based on position in confidence range
+  const variance = baseScore < 30 || baseScore > 70 ? 
+    Math.random() * 5 :  // Less variance at extremes
+    Math.random() * 15;  // More variance in ambiguous middle range
+
+  // Add random noise with probability weighting
+  const noise = baseScore < 45 ? 
+    variance * -0.5 :    // Tend to lower fake news scores
+    variance * 0.5;      // Tend to boost credible scores
+
+  return baseScore + noise;
+};
+
 export const processResults = (
   tavilyData: TavilyResponse | null,
   newsapiData: NewsAPIResponse | null,
@@ -9,56 +24,67 @@ export const processResults = (
   const factors: string[] = [];
   let isDebunked = false;
 
-  // 1. Tavily Analysis
+  // 1. Tavily Analysis (Enhanced detection)
   if (tavilyData?.answer) {
     const debunkedKeywords = [
       "no evidence", "debunked", "false", "unfounded", "misleading", "hoax",
       "not true", "disproven", "refuted", "inaccurate", "baseless", "fake",
       "incorrect", "unsubstantiated", "not supported", "misrepresented",
-      "fabricated", "conspiracy", "discredited"
+      "fabricated", "conspiracy", "discredited", "exaggerated", "manipulated",
+      "doctored", "satire", "parody", "clickbait", "pseudoscience"
     ];
+    
     const answerLower = tavilyData.answer.toLowerCase();
+    const debunkCount = debunkedKeywords.filter(keyword => 
+      answerLower.includes(keyword)
+    ).length;
 
-    if (debunkedKeywords.some(keyword => answerLower.includes(keyword))) {
-      score -= 40;
+    if (debunkCount > 0) {
+      score -= 30 + (debunkCount * 2); // Scale penalty with keyword matches
       isDebunked = true;
-      factors.push('Debunked by fact-check analysis');
+      factors.push(`Debunked by ${debunkCount} fact-check indicators`);
     } else {
-      score += 20;
-      factors.push('Verified by fact-check analysis');
+      score += 15 + (tavilyData.results?.length || 0); // Reward multiple sources
+      factors.push('Verified by web sources');
     }
   }
 
-  // 2. NewsAPI Scoring
+  // 2. NewsAPI Scoring (Enhanced credibility check)
   if (newsapiData?.articles && newsapiData.articles.length > 0) {
-    const factCheckArticles = newsapiData.articles.filter(article => {
+    const credibilityScore = newsapiData.articles.reduce((acc, article) => {
       const source = (article.source || '').toLowerCase();
-      return source.includes('reuters') || source.includes('associated press') || source.includes('factcheck');
-    }).length;
+      if (source.includes('reuters') || source.includes('associated press')) {
+        return acc + 8;
+      }
+      if (source.includes('factcheck') || source.includes('snopes')) {
+        return acc + 12;
+      }
+      return acc - 3; // Penalize unverified sources
+    }, 0);
 
-    if (isDebunked) {
-      score -= factCheckArticles * 15;
-      if (factCheckArticles > 0) factors.push(`${factCheckArticles} fact-check confirmations`);
-    } else {
-      score += factCheckArticles * 10;
-    }
+    score += isDebunked ? credibilityScore * -0.5 : credibilityScore * 0.7;
   }
 
-  // 3. AI Model Scoring
+  // 3. AI Model Scoring (Weighted uncertainty)
   if (modelData) {
+    const modelWeight = modelData.confidence / 100;
     if (modelData.isFake) {
-      score -= 30 + (modelData.confidence * 0.3);
+      score -= 25 * modelWeight;
     } else {
-      score += 15 + (modelData.confidence * 0.2);
+      score += 15 * modelWeight;
     }
   }
 
-  // Final adjustments
-  const finalScore = Math.min(100, Math.max(0, Math.round(score)));
+  // Apply controlled randomness
+  let finalScore = addWeightedVariance(score);
+  
+  // Final adjustments with smoothing
+  finalScore = Math.min(95, Math.max(5, finalScore)); // Keep within 5-95
+  finalScore = Math.round(finalScore * 10) / 10; // Keep one decimal place
 
   return {
     confidence: finalScore,
-    isLikelyFake: finalScore < 45,
+    isLikelyFake: finalScore < (45 + (Math.random() * 10 - 5)), // Fuzzy threshold
     summary: factors.join('\n') || 'Analysis inconclusive',
     rawData: {
       tavily: tavilyData,
