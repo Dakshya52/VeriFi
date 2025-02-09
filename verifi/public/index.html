@@ -14,9 +14,11 @@
       padding: 20px;
       width: 300px;
       margin: auto;
-      border-radius: 10px;
+      border-radius: 20px;
+      /* Increased from 10px to 20px */
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     }
+
 
     .header {
       display: flex;
@@ -51,11 +53,19 @@
     .credits a:hover {
       text-decoration: underline;
     }
+
+    .popup-container {
+      border-radius: 10px;
+      /* Ensure the container also has rounded edges */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      background: white;
+    }
   </style>
 </head>
 
 <body>
-  <div id="popup">
+  <div class="popup-container" id="popup">
     <div class="header">
       <img src="icon-green.png" alt="Verifi Logo" class="logo" />
       <h1>VeriFi</h1>

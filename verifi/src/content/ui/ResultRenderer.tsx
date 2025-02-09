@@ -8,8 +8,8 @@ export class ResultRenderer {
     return container;
   }
 
-showLoading(container: HTMLDivElement) {
-  container.innerHTML = `
+  showLoading(container: HTMLDivElement) {
+    container.innerHTML = `
       <div class="loader">
       <div class="inner one"></div>
       <div class="inner two"></div>
@@ -20,22 +20,22 @@ showLoading(container: HTMLDivElement) {
             <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg></button>
   `;
-  this.addLoaderStyles();
+    this.addLoaderStyles();
+  }
+
+  private addLoaderStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+   
+.loader {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  perspective: 800px;
+  margin: 40px auto; /* Adds space on top and bottom, centers horizontally */
 }
 
-private addLoaderStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-   
-    .loader {
-      position: relative;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      perspective: 800px;
-      margin-bottom: 15px;
-      margin-left: 250px;
-    }
 
     .inner {
       position: absolute;
@@ -100,8 +100,8 @@ private addLoaderStyles() {
       font-size: 14px;
     }
   `;
-  document.head.appendChild(style);
-}
+    document.head.appendChild(style);
+  }
   showResults(container: HTMLDivElement, results: AnalysisResult) {
     const confidenceColor = this.getConfidenceColor(results.confidence);
     const formattedSources = new SourceFormatter().formatSourcesAnonymous(results.rawData);
