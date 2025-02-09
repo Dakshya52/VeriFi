@@ -10,12 +10,13 @@ export const injectStyles = () => {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    margin-bottom: 15px;
 }
 
 .ml-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(14, 89, 114, 0.2);
     border-top-color: #fff;
     border-radius: 50%;
     animation: ml-spin 1s linear infinite;
@@ -71,6 +72,7 @@ export const injectStyles = () => {
 
       /* Circular Hover Background */
       .tg-verify-btn::before {
+        top:5px;
         left: 50%;
         transform: translateX(-50%);
         width: 34px;
@@ -83,6 +85,7 @@ export const injectStyles = () => {
       }
 
       .tg-verify-btn:hover::before {
+        top: 22px;
         background: rgba(29, 155, 240, 0.1);
       }
 
@@ -90,7 +93,7 @@ export const injectStyles = () => {
       [data-testid="reply"]::before,
       [data-testid="retweet"]::before,
       [data-testid="like"]::before,
-      [aria-lable="Share post"]::before,
+      [aria-label="Share post"]::before,
       [data-testid="bookmark"]::before{
         content: '';
         position: absolute;
@@ -109,18 +112,20 @@ export const injectStyles = () => {
       [data-testid="reply"]:hover,
       [data-testid="retweet"]:hover,
       [data-testid="like"]:hover,
-      [aria-lable="Share post"]:hover,
+      [aria-label="Share post"]:hover,
       [data-testid="bookmark"]::before {
         color: rgb(29, 155, 240);
         background: transparent !important;
       }
 
       .tg-verify-btn:hover::before {
+
         background: rgba(29, 155, 240, 0.1);
       }
 
       /* SVG Styling */
       .tg-verify-btn svg {
+        top: 5px;
         width: 18.75px;
         height: 18.75px;
         stroke-width: 2px;
@@ -138,7 +143,7 @@ export const injectStyles = () => {
       .dark [data-testid="reply"],
       .dark [data-testid="retweet"],
       .dark [data-testid="like"],
-      .dark [aria-lable="Share post"],
+      .dark [aria-label="Share post"],
       .dark [data-testid="bookmark"]{
         color: rgb(113, 118, 123);
       }
@@ -152,7 +157,7 @@ export const injectStyles = () => {
       .dark [data-testid="reply"]:hover::before,
       .dark [data-testid="retweet"]:hover::before,
       .dark [data-testid="like"]:hover::before,
-      .dark [aria-lable="Share post"]:hover::before,
+      .dark [aria-label="Share post"]:hover::before,
       .dark [data-testid="bookmark"]:hover::before {
         background: rgba(29, 155, 240, 0.2);
       }
@@ -162,7 +167,7 @@ export const injectStyles = () => {
       [data-testid="reply"]:active::before,
       [data-testid="retweet"]:active::before,
       [data-testid="like"]:active::before,
-      [aria-lable="Share post"]:active::before ,
+      [aria-lablel="Share post"]:active::before ,
       [data-testid="bookmark"]:active::before {
         background: rgba(29, 155, 240, 0.2) !important;
         transform: translate(-50%, -50%) scale(0.95);
@@ -173,14 +178,14 @@ export const injectStyles = () => {
       [data-testid="reply"],
       [data-testid="retweet"],
       [data-testid="like"],
-      [aria-lable="Share post"] ,
+      [aria-label="Share post"] ,
       .tg-verify-btn,
       [data-testid="bookmark"] {
         flex: 1 1 0%;
         min-width: 48px;
         max-width: 80px;
         height: 34px;
-        margin: 0 6px;
+        margin-top: 6px;
         position: relative;
         background: transparent;
         border: none;
@@ -208,7 +213,7 @@ export const injectStyles = () => {
       [data-testid="reply"] > div,
       [data-testid="retweet"] > div,
       [data-testid="like"] > div,
-      [aria-lable="Share post"] > div ,
+      [aria-label="Share post"] > div ,
       [data-testid="bookmark"] > div {
         display: flex;
         align-items: center;
@@ -236,7 +241,7 @@ export const injectStyles = () => {
 [data-testid="reply"],
 [data-testid="retweet"],
 [data-testid="like"],
-[aria-lable="Share post"],
+[aria-label="Share post"],
 [data-testid="bookmark"] {
     flex: 0 1 auto !important;
     transform: translateY(-1px); /* Visual alignment tweak */
@@ -428,6 +433,8 @@ export const injectStyles = () => {
 
       /* Result Container */
       .tg-result-container {
+        margin-top: 15px;
+        margin-bottom: 15px;
         width: 100%;
         position: relative;
         clear: both;
@@ -439,6 +446,8 @@ export const injectStyles = () => {
       }
 
       .dark .tg-result-container {
+        margin-top: 15px;
+        margin-bottom: 15px;
         background: rgba(255, 255, 255, 0.03);
         border-color: rgba(255, 255, 255, 0.1);
       }
