@@ -1,54 +1,6 @@
 export const injectStyles = () => {
   const style = document.createElement("style");
   style.textContent = `
-    .minimal-loader {
-    position: relative;
-    padding: 2rem;
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 15px;
-}
-
-.ml-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(14, 89, 114, 0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: ml-spin 1s linear infinite;
-}
-
-.ml-text {
-    color: #fff;
-    font-family: system-ui, sans-serif;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-    opacity: 0.8;
-}
-
-.ml-close-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.ml-close-btn:hover {
-    opacity: 1;
-}
-
-@keyframes ml-spin {
-    to { transform: rotate(360deg); }
-}
       /* Twitter-like Button with Circular Hover Effect */
       .tg-verify-btn {
         display: flex;
@@ -66,7 +18,6 @@ export const injectStyles = () => {
         justify-content: space-between;
         width: 100%;
         padding: 4px 0;
-        margin: 0 -6px;
         gap: 2px;/* Counteract individual button margins */
       }
 
@@ -319,122 +270,8 @@ export const injectStyles = () => {
       line-height: 1.4;
     }
 
-      /* Modern Loading Animation */
-      .tg-loading-indicator {
-        position: relative;
-        padding: 40px;
-        margin: 20px 0;
-        border-radius: 16px;
-        overflow: hidden;
-        background: rgba(79, 60, 177, 0.94);
-      }
-
-      /* Neon Pulse Effect */
-      @keyframes neon-pulse {
-        0% {
-          opacity: 0.6;
-          filter: brightness(1) blur(2px);
-        }
-        50% {
-          opacity: 1;
-          filter: brightness(1.4) blur(4px);
-        }
-        100% {
-          opacity: 0.6;
-          filter: brightness(1) blur(2px);
-        }
-      }
-
-      .tg-loading-indicator::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(
-          circle at center,
-          rgba(112, 85, 154, 0.2) 0%,
-          transparent 70%
-        );
-        animation: neon-pulse 2s ease-in-out infinite;
-      }
-
-      /* Floating Particles */
-      @keyframes particle-float {
-        0%, 100% {
-          transform: translateY(0) scale(1);
-          opacity: 0.8;
-        }
-        50% {
-          transform: translateY(-20px) scale(1.2);
-          opacity: 1;
-        }
-      }
-
-      .tg-particles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-      }
-
-      .tg-particle {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background: rgba(241, 244, 152, 0.6);
-        border-radius: 50%;
-        animation: particle-float 3s ease-in-out infinite;
-      }
-
-      .tg-particle:nth-child(1) { left: 20%; top: 30%; animation-delay: 0s }
-      .tg-particle:nth-child(2) { left: 70%; top: 20%; animation-delay: 0.5s }
-      .tg-particle:nth-child(3) { left: 40%; top: 70%; animation-delay: 1s }
-      .tg-particle:nth-child(4) { left: 60%; top: 50%; animation-delay: 1.5s }
-
-      /* Glowing Spinner */
-      .tg-loader {
-        position: relative;
-        width: 48px;
-        height: 48px;
-        margin: 0 auto;
-      }
-
-      .tg-loader::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 3px solid transparent;
-        border-top-color:rgb(97, 114, 124);
-        border-radius: 50%;
-        animation: tg-spin 1.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-        filter: drop-shadow(0 0 8px rgba(47, 53, 57, 0.45));
-      }
-
-      @keyframes tg-spin {
-        to { transform: rotate(360deg); }
-      }
-
-      /* Floating Text */
-      .tg-loading-text {
-        position: relative;
-        color:rgb(134, 165, 184);
-        font-size: 15px;
-        font-weight: 500;
-        text-align: center;
-        margin-top: 16px;
-        animation: text-float 2s ease-in-out infinite;
-      }
-
-      @keyframes text-float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
-      }
-
       /* Result Container */
       .tg-result-container {
-        margin-top: 15px;
-        margin-bottom: 15px;
         width: 100%;
         position: relative;
         clear: both;
@@ -446,8 +283,6 @@ export const injectStyles = () => {
       }
 
       .dark .tg-result-container {
-        margin-top: 15px;
-        margin-bottom: 15px;
         background: rgba(255, 255, 255, 0.03);
         border-color: rgba(255, 255, 255, 0.1);
       }
@@ -515,6 +350,8 @@ export const injectStyles = () => {
       .dark .tg-close-btn:hover {
         background: rgba(255, 255, 255, 0.08);
       }
+
+      
 
     `;
   document.head.appendChild(style);

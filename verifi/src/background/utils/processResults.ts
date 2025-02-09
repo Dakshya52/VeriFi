@@ -31,7 +31,8 @@ export const processResults = (
       "not true", "disproven", "refuted", "inaccurate", "baseless", "fake",
       "incorrect", "unsubstantiated", "not supported", "misrepresented",
       "fabricated", "conspiracy", "discredited", "exaggerated", "manipulated",
-      "doctored", "satire", "parody", "clickbait", "pseudoscience"
+      "doctored", "satire", "parody", "clickbait", "pseudoscience","no information",
+      "no verified data",
     ];
     
     const answerLower = tavilyData.answer.toLowerCase();
