@@ -31,8 +31,12 @@ export const processResults = (
       "not true", "disproven", "refuted", "inaccurate", "baseless", "fake",
       "incorrect", "unsubstantiated", "not supported", "misrepresented",
       "fabricated", "conspiracy", "discredited", "exaggerated", "manipulated",
-      "doctored", "satire", "parody", "clickbait", "pseudoscience","no information",
-      "no verified data",
+      "doctored", "satire", "parody", "clickbait", "pseudoscience", "no information",
+      "no verified data", "not ended", "not confirmed", "not true", "not real", "not accurate",
+      "not supported", "not based", "not reliable", "not trustworthy", "not valid", "not credible",
+      "not justified", "not proven", "not backed", "not justified", "not verified", "not confirmed",
+      "not substantiated", "not corroborated", "not validated", "not authenticated", "not legitimated",
+      "no reported"
     ];
     
     const answerLower = tavilyData.answer.toLowerCase();
@@ -81,11 +85,11 @@ export const processResults = (
   
   // Final adjustments with smoothing
   finalScore = Math.min(95, Math.max(5, finalScore)); // Keep within 5-95
-  finalScore = Math.round(finalScore * 10) / 10; // Keep one decimal place
+  finalScore = Math.round(finalScore); // Remove decimal places
 
   return {
     confidence: finalScore,
-    isLikelyFake: finalScore < (45 + (Math.random() * 10 - 5)), // Fuzzy threshold
+    isLikelyFake: finalScore < (45), // Fuzzy threshold
     summary: factors.join('\n') || 'Analysis inconclusive',
     rawData: {
       tavily: tavilyData,

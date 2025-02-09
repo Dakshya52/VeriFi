@@ -30,7 +30,7 @@ The Fake-News-BERT model is a deep learning model fine-tuned for misinformation 
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/dhruvpal05/verifi.git
+   git clone https://github.com/Dakshya52/verifi.git
    ```
 2. Navigate to the directory:
    ```bash

@@ -329,7 +329,7 @@ export const injectStyles = () => {
       /* Close Button */
       .tg-close-btn {
         position: absolute;
-        top: 18px;
+        top: 8px;
         right: -1px;
         width: 32px;
         height: 32px;
