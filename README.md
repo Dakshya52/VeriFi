@@ -1,4 +1,4 @@
-# VeriFi - Misinformation Detection Chrome Extension
+# VeriFi - Misinformation Classification Chrome Extension
 
 ## Overview
 VeriFi is a Chrome extension designed to detect misinformation and fact-check news articles on social media. It combines machine learning models and API-based verification techniques to provide users with a reliability score for news articles and posts, helping them make informed decisions about the authenticity of the information they consume.
@@ -16,7 +16,7 @@ Both methods independently provide scores between 0 and 50. The final score is t
 ## [Fake-News-BERT Model](https://huggingface.co/dhruvpal/fake-news-bert)
 The Fake-News-BERT model is a deep learning model fine-tuned for misinformation detection. It was developed using the following approach:
 
-- [**Dataset**](https://github.com/dhruvpal05): The model was trained on a dataset of 72,134 news articles with 35,028 real and 37,106 fake news. Dataset contains four columns: Serial number (starting from 0); Title (about the text news heading); Text (about the news content); and Label (0 = fake and 1 = real). 
+- [**Dataset**](https://www.kaggle.com/datasets/saurabhshahane/fake-news-classification): The model was trained on a dataset of 72,134 news articles with 35,028 real and 37,106 fake news. Dataset contains four columns: Serial number (starting from 0); Title (about the text news heading); Text (about the news content); and Label (0 = fake and 1 = real). 
 - **Preprocessing**: Text cleaning, tokenization, and feature extraction were performed using NLP techniques.
 - **Model Training**: A BERT-based transformer model was fine-tuned using supervised learning.
 - **Evaluation**: The model was validated using accuracy, F1-score, and other performance metrics.
@@ -34,9 +34,17 @@ The Fake-News-BERT model is a deep learning model fine-tuned for misinformation 
    ```
 2. Navigate to the directory:
    ```bash
-   cd verifi/verify
+   cd verifi/verifi
    ```
-3. Load the extension in Chrome:
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Build the extension:
+   ```bash
+   npm run build
+   ```   
+5. Load the extension in Chrome:
    - Open `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
