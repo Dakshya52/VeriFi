@@ -3,15 +3,48 @@
 ## Overview
 VeriFi is a Chrome extension designed to detect misinformation and fact-check news articles on social media. It combines machine learning models and API-based verification techniques to provide users with a reliability score for news articles and posts, helping them make informed decisions about the authenticity of the information they consume.
 
-## How It Works
-VeriFi assigns a total misinformation score out of 100 by integrating two components:
+## How it Works
 
-1. **[Fake-News-BERT Model](https://huggingface.co/dhruvpal/fake-news-bert) (50 points)**: A custom-trained BERT-based model that predicts the likelihood of a news article being real or fake based on textual analysis.
-2. **API-Based Verification (50 points)**: VeriFi uses:
-   - [**News API**]() to cross-check the credibility of the source.
-   - [**Tavily API**]() to verify claims by searching for relevant fact-checked content.
+### 1. Tavily Analysis
+- **Debunked Keywords:** Reduces score (-2 per keyword, -30 base penalty if found).
+- **Verified Content:** Rewards score (+1 per supporting source, +15 base reward).
 
-Both methods independently provide scores between 0 and 50. The final score is the combined sum of these values, ensuring robustness—if one method underperforms, the other compensates.
+### 2. NewsAPI Scoring
+- **Credible Sources:** +8 per article from Reuters/AP.
+- **Fact-Checking Websites:** +12 per article from Snopes, FactCheck.org.
+- **Unverified Sources:** -3 per unreliable article.
+
+### 3. AI Model Scoring
+- Predicts fake: Reduces score (-25 scaled by confidence level).
+- Predicts credible: Increases score (+15 scaled by confidence level).
+
+## Confidence Score Calculation
+1. **Base Score:** 50
+2. **Adjustments:** Based on Tavily, NewsAPI, and AI model results.
+3. **Randomness:** Small variances to avoid rigid thresholds.
+4. **Final Score:** Clamped between 5-95, rounded to whole number.
+
+## Fake News Classification
+- Threshold: **45 ±5** to avoid rigid boundaries.
+
+## Example Outcomes
+### Fake News
+- Tavily: 5 debunking keywords (-40)
+- AI Model: Predicts fake (90% confidence, -22.5)
+- **Final Score:** 5 (Clamped) → **Likely Fake**
+
+### Credible News
+- Tavily: 3 supporting sources (+18)
+- NewsAPI: 2 credible sources (+16)
+- AI Model: Predicts credible (80% confidence, +12)
+- **Final Score:** 95 → **Likely Credible**
+
+### Borderline News
+- Tavily: 1 supporting source (+16)
+- NewsAPI: 1 unverified source (-3)
+- AI Model: Predicts credible (50% confidence, +7.5)
+- **Final Score:** 71 → **Likely Credible**
+
 
 ## [Fake-News-BERT Model](https://huggingface.co/dhruvpal/fake-news-bert)
 The Fake-News-BERT model is a deep learning model fine-tuned for misinformation detection. It was developed using the following approach:
